@@ -1,0 +1,16 @@
+{
+  "template_id": "page.home",
+  "tenant_id": "default",
+  "parent_id": "site.shop",
+  "name": "홈 페이지",
+  "ttype": "page",
+  "domain": "homepage",
+  "enabled": true,
+  "payload": {
+    "fields": [
+      {"key": "hero_title", "type": "text", "label": "히어로 제목", "required": true},
+      {"key": "hero_body", "type": "richtext", "label": "히어로 본문", "required": false}
+    ],
+    "layout": ["hero_title", "hero_body"]
+  }
+}

@@ -1,0 +1,811 @@
+openapi: 3.0.3
+info:
+  title: Meta Server API
+  version: 1.0.0
+  description: Axum + Tokio + rquickjs hybrid server API
+  contact:
+    name: Meta Server Team
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Server healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      operationId: getMetrics
+      tags:
+        - System
+      responses:
+        '200':
+          description: Prometheus text format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/board:
+    post:
+      summary: Create board post
+      operationId: createBoardPost
+      tags:
+        - Board
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBoardPostRequest'
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardPostResponse'
+        '422':
+          description: Input validation error (CJ1201)
+        '429':
+          description: Rate limit exceeded (CR4001/CR4002/CR4003)
+
+  /api/board/{id}:
+    get:
+      summary: Get board post
+      operationId: getBoardPost
+      tags:
+        - Board
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardPostResponse'
+        '404':
+          description: Post not found
+
+  /api/erp/purchase-orders:
+    post:
+      summary: Create ERP purchase order
+      operationId: createErpPurchaseOrder
+      tags:
+        - ERP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateErpPurchaseOrderRequest'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErpPurchaseOrderResponse'
+        '400':
+          description: Business rule violation (CJ1104)
+        '422':
+          description: Input validation error (CJ1201)
+        '429':
+          description: Rate limit exceeded
+
+  /api/blog/articles:
+    post:
+      summary: Create blog article
+      operationId: createBlogArticle
+      tags:
+        - Blog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogArticleRequest'
+      responses:
+        '201':
+          description: Article created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogArticleResponse'
+        '400':
+          description: Business rule violation (CJ1104)
+        '422':
+          description: Input validation error (CJ1201)
+        '429':
+          description: Rate limit exceeded
+
+  /api/shop/orders:
+    post:
+      summary: Create shop order
+      operationId: createShopOrder
+      tags:
+        - Shop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShopOrderRequest'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopOrderResponse'
+        '400':
+          description: Business rule violation (CJ1104)
+        '422':
+          description: Input validation error (CJ1201)
+        '429':
+          description: Rate limit exceeded
+
+  /ws:
+    get:
+      summary: WebSocket connection
+      operationId: webSocketConnect
+      tags:
+        - Socket
+      parameters:
+        - name: domain
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Domain filter (board, erp, blog, shop)
+      responses:
+        '101':
+          description: WebSocket upgrade
+
+  /admin:
+    get:
+      summary: Admin dashboard (HTML)
+      operationId: adminDashboard
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: Dashboard HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /api/admin/status:
+    get:
+      summary: Server status
+      operationId: adminStatus
+      tags:
+        - Admin
+      security:
+        - adminAuth: []
+      responses:
+        '200':
+          description: Status JSON
+        '401':
+          description: Admin auth failed (CR6001)
+
+  /api/admin/metrics:
+    get:
+      summary: Metrics snapshot
+      operationId: adminMetrics
+      tags:
+        - Admin
+      security:
+        - adminAuth: []
+      responses:
+        '200':
+          description: Metrics JSON
+        '401':
+          description: Admin auth failed (CR6001)
+
+  /api/admin/logs:
+    get:
+      summary: Error logs
+      operationId: adminLogs
+      tags:
+        - Admin
+      security:
+        - adminAuth: []
+      responses:
+        '200':
+          description: Error logs JSON
+        '401':
+          description: Admin auth failed (CR6001)
+
+  /api/admin/cache/flush:
+    post:
+      summary: Flush L1 cache
+      operationId: adminCacheFlush
+      tags:
+        - Admin
+      security:
+        - adminAuth: []
+      responses:
+        '200':
+          description: Flush result
+        '401':
+          description: Admin auth failed (CR6001)
+
+  /api/admin/ping:
+    get:
+      summary: Ping
+      operationId: adminPing
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: Ping response
+
+  /api/admin/ping/trigger:
+    post:
+      summary: Trigger health check
+      operationId: adminPingTrigger
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: DB/Redis status
+
+  /api/admin/export:
+    get:
+      summary: Export metrics + status + logs as JSON
+      operationId: adminExport
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: JSON download (attachment)
+
+  /api/admin/modules:
+    get:
+      summary: List all extension modules with L1 cache status
+      operationId: adminModulesList
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: Module list (id, kind, version, enabled, cached_in_l1)
+        '401':
+          description: Unauthorized (missing/invalid X-Admin-Token)
+        '500':
+          description: DataStore error (CR0005)
+
+  /api/admin/modules/{id}:
+    get:
+      summary: Get module detail (including script_source)
+      operationId: adminModuleGet
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module detail
+        '401':
+          description: Unauthorized
+        '404':
+          description: Module not found (CR4005)
+
+  /api/admin/modules/{id}/toggle:
+    post:
+      summary: Toggle module enabled/disabled
+      operationId: adminModuleToggle
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module toggled (enabled flipped, L1 cache invalidated)
+        '401':
+          description: Unauthorized
+        '404':
+          description: Module not found (CR4005)
+
+  /api/admin/modules/{id}/reload:
+    post:
+      summary: Invalidate L1 cache for a module (hot reload)
+      operationId: adminModuleReload
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: L1 cache invalidated
+        '401':
+          description: Unauthorized
+
+  /api/admin/modules/deploy:
+    post:
+      summary: Deploy a new/updated extension script (compile-validate, store, invalidate)
+      operationId: adminModuleDeploy
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [module_id, script_source]
+              properties:
+                module_id:
+                  type: string
+                script_source:
+                  type: string
+                kind:
+                  type: string
+                  default: extension
+                base_module_id:
+                  type: string
+                enabled:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Module deployed (version incremented, L1 invalidated)
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error (CJ1201)
+        '500':
+          description: Syntax error (CJ1101) or DB error (CR0005)
+
+  /ws/admin:
+    get:
+      summary: Admin WebSocket (real-time metrics)
+      operationId: adminWebSocket
+      tags:
+        - Socket
+      responses:
+        '101':
+          description: WebSocket upgrade
+
+  /api/templates:
+    get:
+      summary: List templates (filter by tenant/domain/parent)
+      operationId: listTemplates
+      tags:
+        - Template
+      parameters:
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+        - name: domain
+          in: query
+          required: false
+          schema: { type: string }
+        - name: parent
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Template list
+
+  /api/templates/{id}:
+    get:
+      summary: Get a single template node
+      operationId: getTemplate
+      tags:
+        - Template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Template found
+        '404':
+          description: Not found (CR4006)
+
+  /api/templates/{id}/tree:
+    get:
+      summary: Get template tree (recursive children)
+      operationId: getTemplateTree
+      tags:
+        - Template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Template tree
+        '404':
+          description: Not found (CR4006)
+
+  /api/board/items:
+    post:
+      summary: Create a board instance from a template (stacking)
+      operationId: createBoardInstanceFromTemplate
+      tags:
+        - Board
+        - Template
+      parameters:
+        - name: template_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sync_policy
+          in: query
+          required: false
+          schema: { type: string, enum: [frozen, live], default: frozen }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: title/body/extra; missing values fall back to template defaults
+      responses:
+        '201':
+          description: Instance created (template_id/version bound)
+        '404':
+          description: Template not found (CR4006)
+        '422':
+          description: Validation error (CJ1201/CJ1202)
+        '429':
+          description: Rate limit exceeded
+
+  /api/blog/items:
+    post:
+      summary: Create a blog article instance from a template (stacking)
+      operationId: createBlogInstanceFromTemplate
+      tags:
+        - Blog
+        - Template
+      parameters:
+        - name: template_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sync_policy
+          in: query
+          required: false
+          schema: { type: string, enum: [frozen, live], default: frozen }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: title/body/extra; missing values fall back to template defaults
+      responses:
+        '201':
+          description: Instance created (template_id/version bound)
+        '404':
+          description: Template not found (CR4006)
+        '422':
+          description: Validation error (CJ1201/CJ1202)
+        '429':
+          description: Rate limit exceeded
+
+  /api/shop/items:
+    post:
+      summary: Create a shop product instance from a template (stacking)
+      operationId: createShopInstanceFromTemplate
+      tags:
+        - Shop
+        - Template
+      parameters:
+        - name: template_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sync_policy
+          in: query
+          required: false
+          schema: { type: string, enum: [frozen, live], default: frozen }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: name/price/stock/slug/category; missing values fall back to template defaults
+      responses:
+        '201':
+          description: Instance created (template_id/version bound)
+        '404':
+          description: Template not found (CR4006)
+        '422':
+          description: Validation error (CJ1201/CJ1202)
+        '429':
+          description: Rate limit exceeded
+        '404':
+          description: Template not found (CR4006)
+        '422':
+          description: Validation error (CJ1201/CJ1202)
+        '429':
+          description: Rate limit exceeded
+
+  /api/admin/templates/{id}/bump:
+    post:
+      summary: Bump template active version by +1 (preserves instance snapshots)
+      operationId: bumpTemplate
+      tags:
+        - Admin
+        - Template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Bumped (new_version returned)
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found (CR4006)
+
+  /api/admin/templates/{id}/propagate:
+    post:
+      summary: Propagate template payload to sync_policy='live' instances
+      operationId: propagateTemplate
+      tags:
+        - Admin
+        - Template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: tenant
+          in: query
+          required: false
+          schema: { type: string }
+        - name: domain
+          in: query
+          required: false
+          schema: { type: string, enum: [board, blog, shop, all], default: all }
+          description: Target domain for propagation. 'all' propagates to board+blog+shop.
+      responses:
+        '200':
+          description: Propagated (count of affected instances)
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found (CR4006)
+
+  /api/admin/tenants/{id}/apply-site-template:
+    post:
+      summary: Provision a site template tree into a tenant (copy body nodes)
+      operationId: applySiteTemplate
+      tags:
+        - Admin
+        - Template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, description: target tenant_id }
+        - name: site_template_id
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Provisioned (count of copied templates)
+        '401':
+          description: Unauthorized
+
+  /openapi.json:
+    get:
+      summary: OpenAPI spec (JSON)
+      operationId: getOpenApi
+      tags:
+        - System
+      responses:
+        '200':
+          description: OpenAPI JSON
+
+  /swagger:
+    get:
+      summary: Swagger UI
+      operationId: swaggerUi
+      tags:
+        - System
+      responses:
+        '200':
+          description: Swagger UI HTML
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    adminAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        database:
+          type: object
+          properties:
+            backend:
+              type: string
+            migrations_applied:
+              type: array
+              items:
+                type: string
+        redis:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+        socket:
+          type: object
+          properties:
+            active_sessions:
+              type: integer
+        pipelines:
+          type: object
+
+    CreateBoardPostRequest:
+      type: object
+      required:
+        - title
+        - body
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        extra:
+          type: object
+
+    BoardPostResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        id:
+          type: integer
+        title:
+          type: string
+
+    CreateErpPurchaseOrderRequest:
+      type: object
+      required:
+        - workflow_id
+        - supplier
+        - quantity
+      properties:
+        workflow_id:
+          type: string
+        supplier:
+          type: string
+        quantity:
+          type: integer
+        amount:
+          type: integer
+
+    ErpPurchaseOrderResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        id:
+          type: integer
+        domain:
+          type: string
+
+    CreateBlogArticleRequest:
+      type: object
+      required:
+        - title
+        - body
+        - category
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        category:
+          type: string
+
+    BlogArticleResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        id:
+          type: integer
+        domain:
+          type: string
+
+    CreateShopOrderRequest:
+      type: object
+      required:
+        - product_id
+        - quantity
+        - price
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+
+    ShopOrderResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        id:
+          type: integer
+        domain:
+          type: string

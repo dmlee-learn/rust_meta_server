@@ -1,0 +1,111 @@
+# Phase 8: 실 Redis + PostgreSQL 인스턴스 (Docker Compose)
+#
+# 실행: docker compose up -d
+# 종료: docker compose down
+#
+# 환경변수 (메타서버):
+#   REDIS_ENABLED=true
+#   REDIS_URL=redis://:metapass@localhost:6379
+#   DATABASE_BACKEND=postgres
+#   DATABASE_URL=postgres://meta:metapass@localhost:5432/meta
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "0.0.0.0:6379:6379"
+    command: redis-server --requirepass metapass
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "metapass", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - meta-net
+
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: meta
+      POSTGRES_USER: meta
+      POSTGRES_PASSWORD: metapass
+    ports:
+      - "0.0.0.0:5432:5432"
+    volumes:
+      - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./migrations/002_domain_tables.sql:/docker-entrypoint-initdb.d/002_domain_tables.sql:ro
+      - ./migrations/003_tags_comments.sql:/docker-entrypoint-initdb.d/003_tags_comments.sql:ro
+      - ./migrations/004_tenant.sql:/docker-entrypoint-initdb.d/004_tenant.sql:ro
+      - ./migrations/005_shop_products.sql:/docker-entrypoint-initdb.d/005_shop_products.sql:ro
+      - ./migrations/006_meta_templates.sql:/docker-entrypoint-initdb.d/006_meta_templates.sql:ro
+      - ./migrations/007_template_instance.sql:/docker-entrypoint-initdb.d/007_template_instance.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meta -d meta"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - meta-net
+
+  meta_server:
+    image: meta_server:latest
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      DATABASE_BACKEND: postgres
+      DATABASE_URL: postgres://meta:metapass@postgres:5432/meta
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://:metapass@redis:6379
+      JWT_DISABLED: "true"
+      RATE_LIMIT_PER_MIN: "100"
+      ADMIN_TOKEN: "admin-secret-123"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    networks:
+      - meta-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    depends_on:
+      - meta_server
+    ports:
+      - "0.0.0.0:9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus-alerts.yml:/etc/prometheus/rules/slo.yml:ro
+    networks:
+      - meta-net
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    depends_on:
+      - prometheus
+    ports:
+      - "0.0.0.0:3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana-dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - meta-net
+
+networks:
+  meta-net:
+    driver: bridge

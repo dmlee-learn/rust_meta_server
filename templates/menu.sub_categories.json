@@ -1,0 +1,19 @@
+{
+  "template_id": "menu.sub_categories",
+  "tenant_id": "default",
+  "domain": "board",
+  "ttype": "menu",
+  "parent_id": "menu.main",
+  "version": 1,
+  "enabled": true,
+  "description": "카테고리 하위 메뉴",
+  "payload": {
+    "label": "카테고리",
+    "path": "/categories",
+    "children": [
+      {"label": "디지털", "path": "/categories/digital"},
+      {"label": "패션", "path": "/categories/fashion"},
+      {"label": "리빙", "path": "/categories/living"}
+    ]
+  }
+}

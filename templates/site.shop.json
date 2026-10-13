@@ -1,0 +1,13 @@
+{
+  "template_id": "site.shop",
+  "tenant_id": "default",
+  "parent_id": "",
+  "name": "쇼핑몰 사이트",
+  "ttype": "site",
+  "domain": "shop",
+  "enabled": true,
+  "payload": {
+    "description": "전자상점 사이트 템플릿. 홈/블로그/상품 페이지를 포함.",
+    "theme": {"primary_color": "#2563eb"}
+  }
+}

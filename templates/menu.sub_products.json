@@ -1,0 +1,19 @@
+{
+  "template_id": "menu.sub_products",
+  "tenant_id": "default",
+  "domain": "board",
+  "ttype": "menu",
+  "parent_id": "menu.main",
+  "version": 1,
+  "enabled": true,
+  "description": "상품 하위 메뉴",
+  "payload": {
+    "label": "상품",
+    "path": "/products",
+    "children": [
+      {"label": "전체 상품", "path": "/products/all"},
+      {"label": "신상품", "path": "/products/new"},
+      {"label": "인기 상품", "path": "/products/popular"}
+    ]
+  }
+}

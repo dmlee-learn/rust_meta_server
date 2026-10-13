@@ -1,0 +1,24 @@
+[package]
+name = "meta_server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1.92"
+axum = { version = "0.7", features = ["ws"] }
+futures = "0.3"
+http-body-util = "0.1.5"
+postgres-protocol = "0.6.12"
+redis = { version = "0.27.4", features = ["tokio-comp", "connection-manager"] }
+rquickjs = { version = "0.14.0", features = ["classes", "futures", "parallel"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.21"
+tokio = { version = "1.53.1", features = ["full"] }
+tokio-postgres = "0.7.18"
+tower = { version = "0.5.3", features = ["util"] }
+tokio-tungstenite = { version = "0.24.0", features = ["native-tls"] }
+uuid = { version = "1.10.0", features = ["v4"] }
+tower-http = { version = "0.6.0", features = ["cors"] }
+jsonwebtoken = "9"
+chrono = "0.4"

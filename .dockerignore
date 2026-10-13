@@ -1,0 +1,10 @@
+# Docker 빌드 제외 파일
+target/
+.git/
+.gitignore
+*.md
+Dockerfile
+.dockerignore
+docker-compose.yml
+.wsl/
+*.swp

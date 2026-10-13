@@ -1,0 +1,16 @@
+{
+  "template_id": "body.hero",
+  "tenant_id": "default",
+  "domain": "board",
+  "ttype": "body",
+  "parent_id": "page.home",
+  "version": 1,
+  "enabled": true,
+  "description": "히어로 섹션 바디 템플릿",
+  "payload": {
+    "title": "주요 공지",
+    "body": "사이트 상단 히어로 배너. 프로모션 배너, 주요 공지 링크를 배치합니다.",
+    "banner_url": "/assets/hero-banner.png",
+    "cta_text": "자세히 보기"
+  }
+}

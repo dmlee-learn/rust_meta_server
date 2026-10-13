@@ -1,0 +1,25 @@
+# === Rust build ===
+/target
+
+# === Logs ===
+*.log
+
+# === Windows artifacts ===
+nul
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDE ===
+.vscode/
+.idea/
+*.iml
+
+# === Docker (local) ===
+.docker/
+
+# === Temporary ===
+*.tmp
+*.bak

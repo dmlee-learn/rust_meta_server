@@ -1,0 +1,20 @@
+{
+  "template_id": "body.footer",
+  "tenant_id": "default",
+  "domain": "board",
+  "ttype": "body",
+  "parent_id": "page.home",
+  "version": 1,
+  "enabled": true,
+  "description": "푸터 섹션 바디 템플릿",
+  "payload": {
+    "title": "푸터",
+    "body": "사이트 하단 푸터. 저작권, 서비스 약관, 연락처 링크를 배치합니다.",
+    "copyright": "© 2026 Meta Corp.",
+    "links": [
+      {"label": "이용약관", "href": "/terms"},
+      {"label": "개인정보처리방침", "href": "/privacy"},
+      {"label": "오시는 길", "href": "/location"}
+    ]
+  }
+}

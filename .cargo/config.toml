@@ -1,0 +1,11 @@
+# rquickjs 0.14 QuickJS C 컴파일 + Windows SDK lib 링크 설정
+# docs/setting/BUILD_ENV_SETUP.md 참조
+#
+# 주의: RUSTFLAGS는 .cargo/config.toml [env]에서 link-arg로 변환되지 않으므로
+#      shell에서 export 또는 docs/setting/BUILD_ENV_SETUP.md의 스크립트로 설정해야 함.
+[target.x86_64-pc-windows-msvc]
+linker = "link"
+
+[env]
+# MSVC C 컴파일러 (cc crate가 QuickJS C 컴파일)
+CC = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\cl.exe"

@@ -1,0 +1,85 @@
+{
+  "title": "Meta Server Dashboard",
+  "uid": "meta-server-01",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "HTTP Requests",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(meta_server_http_requests_total[1m]))",
+          "legendFormat": "req/s"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Cache Hit Rate",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(meta_server_cache_hits_total[1m])) / (sum(rate(meta_server_cache_hits_total[1m])) + sum(rate(meta_server_cache_misses_total[1m]))) * 100",
+          "legendFormat": "%"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active Sessions",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        {
+          "expr": "meta_server_active_sessions",
+          "legendFormat": "sessions"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "HTTP Request Duration",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(meta_server_http_request_duration_ms_bucket[1m])) by (le, domain))",
+          "legendFormat": "{{domain}} p95"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Hook Executions & Errors",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "rate(meta_server_hook_executions_total[1m])",
+          "legendFormat": "executions/s"
+        },
+        {
+          "expr": "rate(meta_server_hook_errors_total[1m])",
+          "legendFormat": "errors/s"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Engine Memory",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "meta_server_engine_memory_bytes",
+          "legendFormat": "memory (bytes)"
+        }
+      ]
+    }
+  ]
+}

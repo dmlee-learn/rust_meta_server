@@ -1,0 +1,86 @@
+# Phase 32: Prometheus Alert Rules
+#
+# SLO 기반 alerting. error budget burn rate 기준.
+#
+# SLO 정의:
+#   - Availability: 99.9% (200/1xx 응답 비율)
+#   - Latency p95: < 500ms
+#   - Error rate: < 1%
+#   - Hook success: > 99.5%
+
+groups:
+  - name: slo_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HTTP 5xx error rate 5% 초과"
+          description: "5분간 5xx 에러율이 5%를 초과했습니다. SLO(1%) 위반."
+
+      - alert: HighLatencyP95
+        expr: |
+          (
+            sum(rate(http_duration_milliseconds_sum[5m]))
+            /
+            sum(rate(http_duration_milliseconds_count[5m]))
+          ) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "평균 레이턴시 1초 초과"
+          description: "5분간 평균 레이턴시가 1000ms를 초과했습니다. SLO(p95<500ms) 위반 가능성."
+
+      - alert: HighL1CacheMissRate
+        expr: |
+          (sum(rate(cache_misses_total{layer="L1"}[5m]))
+          /
+          (sum(rate(cache_misses_total{layer="L1"}[5m])) + sum(rate(cache_hits_total{layer="L1"}[5m])))) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "L1 cache miss rate 50% 초과"
+          description: "L1 캐시 miss가 증가하고 있습니다. cache warming 또는 L3 장애 확인."
+
+      - alert: HookErrorRateHigh
+        expr: |
+          (sum(rate(hook_execution_total{status="error"}[5m]))
+          /
+          sum(rate(hook_execution_total[5m]))) > 0.005
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Hook error rate 0.5% 초과"
+          description: "rquickjs hook 실행 중 에러율이 증가했습니다."
+
+      - alert: SandboxCrashIncreasing
+        expr: increase(sandbox_crash_count[10m]) > 3
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sandbox crash 반복"
+          description: "10분간 sandbox crash 3회 이상 발생. 스크립트 또는 엔진 문제."
+
+      - alert: SandboxTimeoutIncreasing
+        expr: increase(sandbox_timeout_count[10m]) > 5
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sandbox timeout 반복"
+          description: "10분간 sandbox timeout 5회 이상. 무한루프 또는 CPU throttle 확인."
+
+      - alert: DBBackendDown
+        expr: http_requests_total{status="500"} > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "500 응답 연속"
+          description: "2분간 500 응답 지속. DB backend 장애 가능성."

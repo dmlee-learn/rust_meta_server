@@ -1,0 +1,16 @@
+{
+  "template_id": "menu.main",
+  "tenant_id": "default",
+  "parent_id": "page.home",
+  "name": "메인 메뉴",
+  "ttype": "menu",
+  "domain": "",
+  "enabled": true,
+  "payload": {
+    "fields": [
+      {"key": "label", "type": "text", "label": "메뉴 라벨", "required": true},
+      {"key": "url", "type": "url", "label": "연결 URL", "required": false}
+    ],
+    "layout": ["label", "url"]
+  }
+}

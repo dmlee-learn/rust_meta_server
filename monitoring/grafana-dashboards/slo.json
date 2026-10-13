@@ -1,0 +1,213 @@
+{
+  "title": "SLO Dashboard (Phase 32)",
+  "uid": "meta-slo",
+  "tags": ["meta-server", "slo"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Availability SLO (99.9%)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "(1 - (sum(rate(http_requests_total{status=~'5..'}[5m])) / sum(rate(http_requests_total[5m])))) * 100",
+          "legendFormat": "availability %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 99.0 },
+              { "color": "orange", "value": 99.5 },
+              { "color": "green", "value": 99.9 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Rate SLO (<1%)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "(sum(rate(http_requests_total{status=~'[45]..'}[5m])) / sum(rate(http_requests_total[5m]))) * 100",
+          "legendFormat": "error rate %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Avg Latency (SLO <500ms)",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_duration_milliseconds_sum[5m])) / sum(rate(http_duration_milliseconds_count[5m]))",
+          "legendFormat": "avg latency ms"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          },
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Hook Success Rate SLO (>99.5%)",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(hook_execution_total{status='error'}[5m])) / sum(rate(hook_execution_total[5m]))) * 100",
+          "legendFormat": "hook success %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "orange", "value": 99.0 },
+              { "color": "green", "value": 99.5 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency (p95/p99)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_duration_milliseconds_bucket[5m])) by (le, domain))",
+          "legendFormat": "p95 {{domain}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_duration_milliseconds_bucket[5m])) by (le, domain))",
+          "legendFormat": "p99 {{domain}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Throughput (req/s by domain)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m])) by (domain, status)",
+          "legendFormat": "{{domain}} {{status}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "L1/L2 Cache Hit-Miss",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum(rate(cache_hits_total[5m])) by (layer)",
+          "legendFormat": "hit {{layer}}"
+        },
+        {
+          "expr": "sum(rate(cache_misses_total[5m])) by (layer)",
+          "legendFormat": "miss {{layer}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Sandbox Errors",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum(increase(sandbox_crash_count[5m]))",
+          "legendFormat": "crash"
+        },
+        {
+          "expr": "sum(increase(sandbox_timeout_count[5m]))",
+          "legendFormat": "timeout"
+        },
+        {
+          "expr": "sum(rate(hook_execution_total{status='error'}[5m]))",
+          "legendFormat": "hook error rate"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "SLO Availability (24h, 99.9%)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "meta_server_slo_availability_ratio * 100",
+          "legendFormat": "availability %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 99.0 },
+              { "color": "orange", "value": 99.5 },
+              { "color": "green", "value": 99.9 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Budget Consumed",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 20 },
+      "targets": [
+        {
+          "expr": "meta_server_slo_error_budget_ratio / (1 - 0.999)",
+          "legendFormat": "budget consumed %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    }
+  ]
+}

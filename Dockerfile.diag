@@ -1,0 +1,11 @@
+FROM rust:1.88-slim AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev build-essential && rm -rf /var/lib/apt/lists/*
+COPY Cargo.toml Cargo.lock ./
+COPY src/ src/
+COPY examples/ examples/
+RUN cargo build --example pg_diag --release
+
+FROM debian:bookworm-slim
+COPY --from=builder /app/target/release/examples/pg_diag /usr/local/bin/pg_diag
+CMD ["pg_diag"]

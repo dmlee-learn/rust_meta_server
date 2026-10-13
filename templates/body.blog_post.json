@@ -1,0 +1,17 @@
+{
+  "template_id": "body.blog_post",
+  "tenant_id": "default",
+  "parent_id": "site.shop",
+  "name": "블로그 글 본문",
+  "ttype": "body",
+  "domain": "blog",
+  "enabled": true,
+  "payload": {
+    "fields": [
+      {"key": "title", "type": "text", "label": "제목", "required": true, "default": ""},
+      {"key": "category", "type": "select", "label": "카테고리", "required": true, "default": "general"},
+      {"key": "body", "type": "richtext", "label": "본문", "required": false, "default": ""}
+    ],
+    "layout": ["title", "category", "body"]
+  }
+}
