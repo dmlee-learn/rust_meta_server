@@ -20,6 +20,7 @@ desktop.ini
 # === Docker (local) ===
 .docker/
 
-# === Temporary ===
+# === GitHub workflows (upload via GitHub UI) ===
+.github/
 *.tmp
 *.bak
